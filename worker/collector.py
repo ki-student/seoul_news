@@ -110,19 +110,19 @@ def crawl_main():
     res.encoding = 'utf-8'
     soup = BeautifulSoup(res.text, "html.parser")
     articles = []
-    for a in soup.select(".main-top-layout a"):
+    for i, a in enumerate(soup.select(".main-top-layout a")):
         title = get_safe_title(a)
         if title and len(title) > 5:
-            articles.append({"title": title, "url": urljoin(BASE_URL, a.get("href")), "source": "00_main_top", "category": "00_메인"})
-    for a in soup.select(".articleContentWrap a"):
+            articles.append({"title": title, "url": urljoin(BASE_URL, a.get("href")), "source": "00_main_top", "category": "00_메인", "rank": i + 1})
+    for i, a in enumerate(soup.select(".articleContentWrap a")):
         title = get_safe_title(a)
         if title and len(title) > 5:
-            articles.append({"title": title, "url": urljoin(BASE_URL, a.get("href")), "source": "00_main_today", "category": "00_메인"})
-    for li in soup.select("div.sectionContentWrap ol li")[:10]:
+            articles.append({"title": title, "url": urljoin(BASE_URL, a.get("href")), "source": "00_main_today", "category": "00_메인", "rank": i + 1})
+    for i, li in enumerate(soup.select("div.sectionContentWrap ol li")[:10]):
         a = li.select_one("a")
         if a:
             title = get_safe_title(a)
-            if title: articles.append({"title": title, "url": urljoin(BASE_URL, a.get("href")), "source": "00_main_most", "category": "00_메인"})
+            if title: articles.append({"title": title, "url": urljoin(BASE_URL, a.get("href")), "source": "00_main_most", "category": "00_메인", "rank": i + 1})
     return articles
 
 def crawl_category_page(category_name, url):
@@ -130,44 +130,40 @@ def crawl_category_page(category_name, url):
     res.encoding = 'utf-8'
     soup = BeautifulSoup(res.text, "html.parser")
     articles = []
-    for li in soup.select("div.sectionContentWrap ol li")[:5]:
+    for i, li in enumerate(soup.select("div.sectionContentWrap ol li")[:5]):
         a = li.select_one("a")
         if a:
             title = get_safe_title(a)
-            if title: articles.append({"title": title, "url": urljoin(BASE_URL, a.get("href")), "source": "01_top_popular", "category": category_name})
+            if title: articles.append({"title": title, "url": urljoin(BASE_URL, a.get("href")), "source": "01_top_popular", "category": category_name, "rank": i + 1})
     list_area = soup.select_one("div.listMain")
     if list_area:
         for paging in list_area.select(".pagination, .paging, .page"): paging.decompose()
-        for li in list_area.select("section ul li"):
+        for i, li in enumerate(list_area.select("section ul li")):
             title_link = li.select_one(".articleTitle a") or li.select_one("a")
             if title_link:
                 title = get_safe_title(title_link).strip()
                 if not title or len(title) < 5 or "page=" in title_link.get("href"): continue
-                articles.append({"title": title, "url": urljoin(BASE_URL, title_link.get("href")), "source": "02_latest", "category": category_name})
+                articles.append({"title": title, "url": urljoin(BASE_URL, title_link.get("href")), "source": "02_latest", "category": category_name, "rank": i + 1})
     return articles
 
 def crawl_policy():
     url = "https://go.seoul.co.kr/"
     res = requests.get(url, headers=headers)
-    # go.seoul.co.kr는 CP949를 사용하므로 명시적으로 설정하여 깨짐 방지
     res.encoding = 'cp949'
     soup = BeautifulSoup(res.text, "html.parser")
     articles = []
-    # 정책 Top
-    for item in soup.select("#hitTab01 ol li, .bestview ul li a")[:10]:
+    for i, item in enumerate(soup.select("#hitTab01 ol li, .bestview ul li a")[:10]):
         a = item if item.name == 'a' else item.select_one('a')
         if a:
             title = get_safe_title(a)
             if title and len(title) > 2:
-                articles.append({"title": title, "url": urljoin(url, a.get("href")), "source": "01_policy_top_best", "category": "정책.자치"})
-    # 분야별 최신
+                articles.append({"title": title, "url": urljoin(url, a.get("href")), "source": "01_policy_top_best", "category": "정책.자치", "rank": i + 1})
     sector_names = ["정책.행정", "지방자치", "서울"]
     for i in range(3):
-        for selector in [f"#main_news_{i} li a", f"#main_news2_{i} li a"]:
-            for a in soup.select(selector):
-                title = get_safe_title(a)
-                if title:
-                    articles.append({"title": title, "url": urljoin(url, a.get("href")), "source": f"02_policy_sector_{i+1}", "category": "정책.자치", "sub_category": sector_names[i]})
+        for j, a in enumerate(soup.select(f"#main_news_{i} li a") + soup.select(f"#main_news2_{i} li a")):
+            title = get_safe_title(a)
+            if title:
+                articles.append({"title": title, "url": urljoin(url, a.get("href")), "source": f"02_policy_sector_{i+1}", "category": "정책.자치", "sub_category": sector_names[i], "rank": j + 1})
     return articles
 
 def crawl_entertainment():
@@ -176,14 +172,14 @@ def crawl_entertainment():
     res.encoding = 'utf-8'
     soup = BeautifulSoup(res.text, "html.parser")
     articles = []
-    for a in soup.select('main > section > div > div > div:nth-child(1) a')[:4]:
+    for i, a in enumerate(soup.select('main > section > div > div > div:nth-child(1) a')[:4]):
         title = get_safe_title(a)
-        if title: articles.append({"title": title, "url": urljoin("https://en.seoul.co.kr", a.get("href")), "source": "01_ent_top", "category": "연애"})
-    for li in soup.select('section.main-left > div > ul > li')[:20]:
+        if title: articles.append({"title": title, "url": urljoin("https://en.seoul.co.kr", a.get("href")), "source": "01_ent_top", "category": "연애", "rank": i + 1})
+    for i, li in enumerate(soup.select('section.main-left > div > ul > li')[:20]):
         a = li.select_one('a')
         if a:
             title = get_safe_title(a)
-            if title: articles.append({"title": title, "url": urljoin("https://en.seoul.co.kr", a.get("href")), "source": "02_ent_latest", "category": "연애"})
+            if title: articles.append({"title": title, "url": urljoin("https://en.seoul.co.kr", a.get("href")), "source": "02_ent_latest", "category": "연애", "rank": i + 1})
     return articles
 
 # =====================================================
@@ -214,27 +210,34 @@ def process_and_upload(articles):
     init_qdrant_collection()
     
     current_time = int(time.time())
-    titles = [a["title"] for a in articles]
-    embeddings = get_embeddings(titles)
     
-    if not embeddings:
-        log("❌ 임베딩 생성 실패. 업로드를 중단합니다.")
-        return None
-
-    # 1. Qdrant 업로드
+    # 1. Qdrant 업로드 및 데이터 병합
     points = []
+    skipped_count = 0
+    
     for i, article in enumerate(articles):
-        # 수집 시간 추가 (삭제용)
-        article["collected_at"] = current_time
-        
         point_id = hashlib.md5(article["url"].encode()).hexdigest()
-        points.append(models.PointStruct(
-            id=point_id,
-            vector=embeddings[i],
-            payload=article
-        ))
         
-        # 타임아웃 방지를 위해 배치 크기를 50으로 줄임
+        # 기존 데이터 조회
+        existing = qdrant_client.retrieve(collection_name=COLLECTION_NAME, ids=[point_id])
+        
+        if existing:
+            skipped_count += 1
+            existing_point = existing[0]
+            article_payload = existing_point.payload
+            # 랭크와 수집 시간만 최신으로 갱신
+            article_payload.update({
+                "collected_at": current_time,
+                "latest_rank": article.get("rank", 0)
+            })
+            points.append(models.PointStruct(id=point_id, vector=existing_point.vector, payload=article_payload))
+        else:
+            # 새로운 기사는 임베딩 필요
+            embedding = get_embeddings([article["title"]])[0]
+            article["collected_at"] = current_time
+            article["latest_rank"] = article.get("rank", 0)
+            points.append(models.PointStruct(id=point_id, vector=embedding, payload=article))
+        
         if len(points) >= 50:
             qdrant_client.upsert(collection_name=COLLECTION_NAME, points=points)
             points = []
@@ -242,17 +245,20 @@ def process_and_upload(articles):
     if points:
         qdrant_client.upsert(collection_name=COLLECTION_NAME, points=points)
     
-    # 오래된 데이터 정리 실행
     cleanup_old_articles()
-    log("✅ Qdrant 업로드 및 데이터 정리 완료.")
+    log(f"✅ Qdrant 업로드 완료. (중복 건너뜀: {skipped_count}건)")
 
-    # 2. 클러스터링 (유사도 기반)
+    # 2. 클러스터링을 위한 임베딩 데이터 수집
+    # (클러스터링을 위해서는 전체 벡터가 필요하므로 간단히 스크롤 활용)
     log("유사 기사 그룹화 중...")
+    scroll_res = qdrant_client.scroll(collection_name=COLLECTION_NAME, limit=1000, with_vectors=True)
+    points = scroll_res[0]
+    
     clusters = []
-    for i in range(len(articles)):
+    for i, p in enumerate(points):
         added = False
         for c in clusters:
-            sim = cosine_similarity([embeddings[i]], [embeddings[c[0]]])[0][0]
+            sim = cosine_similarity([p.vector], [points[c[0]].vector])[0][0]
             if sim > 0.8:
                 c.append(i)
                 added = True
@@ -281,7 +287,37 @@ def run_total_pipeline():
     for name, url in CATEGORY_URLS.items():
         all_raw_data.extend(crawl_category_page(name, url))
 
-    unique_data = {a["url"]: a for a in all_raw_data}
+    # 소스별 우선순위 설정 (낮을수록 우선순위 높음)
+    source_priority = {
+        # 1순위: 전체 메인 Top (압도적 중요도)
+        "00_main_top": 1,
+
+        # 2순위: 카테고리별 핵심 (카테고리 내에서 중요)
+        "01_top_popular": 2, "01_policy_top_best": 2, "01_ent_top": 2,
+
+        # 3순위: 독자 반응 (관심도)
+        "00_main_most": 3,
+
+        # 4순위: 메인 일반
+        "00_main_today": 4,
+
+        # 5순위: 나머지는 최신순
+        "02_latest": 5, "02_policy_sector_1": 5, "02_policy_sector_2": 5, 
+        "02_policy_sector_3": 5, "02_ent_latest": 5
+    }
+    
+    unique_data = {}
+    for a in all_raw_data:
+        url = a["url"]
+        if url not in unique_data:
+            unique_data[url] = a
+        else:
+            # 이미 있으면 우선순위가 더 높은 것만 유지
+            current_priority = source_priority.get(a["source"], 99)
+            existing_priority = source_priority.get(unique_data[url]["source"], 99)
+            if current_priority < existing_priority:
+                unique_data[url] = a
+
     final_list = list(unique_data.values())
     final_list.sort(key=lambda x: (x.get("category", "ZZ"), x.get("source", "ZZ")))
 
@@ -308,7 +344,7 @@ def run_total_pipeline():
         time.sleep(0.05)
 
     # 데이터 업로드 및 클러스터링
-    clusters = process_and_upload(final_list)
+    clusters = process_and_upload(final_list) # Qdrant 업로드 재활성화
 
     # JSON 저장
     output = {"timestamp": time.strftime("%Y-%m-%d %H:%M:%S"), "articles": final_list, "clusters": clusters or []}

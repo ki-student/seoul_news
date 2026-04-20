@@ -108,8 +108,11 @@ class NewsAnalyzer:
         if not articles:
             return {"report": f"[{target_category}] 데이터 부족", "viz_data": {"total_count": 0, "issue_breakdown": []}}
 
-        # Top 기사 (00, 01 소스) 분류
+        # Top 기사 (00, 01 소스) 분류 및 랭킹 정렬
         top_articles = [a for a in articles if a.get("source", "").startswith(("00_", "01_"))]
+        top_articles.sort(key=lambda x: x.get("latest_rank") or x.get("rank") or 99)
+        top_articles = top_articles[:3]
+        
         total_count = len(articles)
         article_by_index = {idx: article for idx, article in zip(selected_indices, articles)}
         issue_breakdown = self._build_issue_breakdown(snapshot, set(selected_indices), article_by_index, total_count)
