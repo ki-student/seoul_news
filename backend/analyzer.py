@@ -18,7 +18,7 @@ class NewsAnalyzer:
         self.collection_name = "seoul_news"
         self.model_name = "gpt-5.4-mini"
         self.snapshot_path = Path(__file__).resolve().parents[1] / "worker" / "seoul_news.json"
-        
+        self._ensure_payload_indexes()
         self.category_links = {
             "전체": "https://www.seoul.co.kr",
             "정치": "https://www.seoul.co.kr/news/newsList.php?section=politics",
@@ -30,6 +30,19 @@ class NewsAnalyzer:
             "연애": "https://en.seoul.co.kr/news/newsList.php?section=entertainment",
             "정책.자치": "https://go.seoul.co.kr/"
         }
+
+    def _ensure_payload_indexes(self):
+        """Qdrant 컬렉션에 category 필터링을 위한 인덱스를 생성합니다."""
+        try:
+            self.qdrant.create_payload_index(
+                collection_name=self.collection_name,
+                field_name="category",
+                field_schema=models.PayloadSchemaType.KEYWORD,
+            )
+            print(f"✅ [{self.collection_name}] 'category' 인덱스 확인/생성 완료")
+        except Exception as e:
+            # 이미 인덱스가 있는 경우 에러가 날 수 있는데, 그건 무시해도 됩니다.
+            pass
 
     def _get_korean_date(self):
         weekday_map = ['월', '화', '수', '목', '금', '토', '일']

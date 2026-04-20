@@ -46,7 +46,6 @@ def get_embeddings(texts):
     except Exception as e:
         log(f"임베딩 생성 에러: {e}")
         return None
-
 def init_qdrant_collection():
     """뉴스 컬렉션 초기화"""
     try:
@@ -58,8 +57,17 @@ def init_qdrant_collection():
                 collection_name=COLLECTION_NAME,
                 vectors_config=models.VectorParams(size=VECTOR_SIZE, distance=models.Distance.COSINE),
             )
+            log(f"✅ 컬렉션 '{COLLECTION_NAME}' 생성 완료.")
+
+        # [추가] 수집 시간 필드에 숫자 인덱스 생성 (삭제 기능을 위해 필수)
+        qdrant_client.create_payload_index(
+            collection_name=COLLECTION_NAME,
+            field_name="collected_at",
+            field_schema=models.PayloadSchemaType.INTEGER,
+        )
     except Exception as e:
-        log(f"Qdrant 초기화 에러: {e}")
+        # 이미 인덱스가 있는 경우 등의 사소한 에러는 무시
+        pass
 
 # =====================================================
 # 🔹 데이터 정제 및 유틸리티
@@ -304,8 +312,7 @@ def run_total_pipeline():
 
     # JSON 저장
     output = {"timestamp": time.strftime("%Y-%m-%d %H:%M:%S"), "articles": final_list, "clusters": clusters or []}
-    os.makedirs("worker", exist_ok=True)
-    with open("worker/seoul_news.json", "w", encoding="utf-8") as f:
+    with open("seoul_news.json", "w", encoding="utf-8") as f:
         json.dump(output, f, ensure_ascii=False, indent=2)
     
     log("작업 완료: 'seoul_news.json' 저장 및 Qdrant 업로드 완료.")
