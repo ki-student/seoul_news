@@ -27,7 +27,7 @@ qdrant_client = QdrantClient(
 )
 analyzer = NewsAnalyzer()
 USER_COLLECTION = "user_profiles"
-CATEGORY_OPTIONS = ["전체", "정치", "경제", "사회", "국제", "문화", "스포츠", "정책.자치", "연예"]
+CATEGORY_OPTIONS = ["전체", "정치", "경제", "사회", "국제", "문화", "스포츠", "정책.자치", "연애"]
 
 st.set_page_config(page_title="서울신문 AI 이슈 브리핑", layout="wide")
 
