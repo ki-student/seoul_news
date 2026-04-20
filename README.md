@@ -3,7 +3,7 @@
 ### 실시간 뉴스 수집 · 분석 · 책임 있는 AI 리포트 생성 시스템
 
 이 프로젝트는 서울신문 데이터를 기반으로  
-**"수집 → 임베딩 → 클러스터링 → AI 분석 → 리포트 생성"**까지  
+"수집 → 임베딩 → 클러스터링 → AI 분석 → 리포트 생성"까지  
 자동화한 **End-to-End 뉴스 분석 파이프라인**입니다.
 
 ---
@@ -23,22 +23,13 @@
 
 ---
 
-## 🧨 우리가 해결한 문제
+## 🧨 해결한 문제
 
 ### ❌ 기존 뉴스 요약 AI
 - 단순 요약
-- 맥락 없음
-- 중복 기사 많음
+- 상관관계 없음
 
-### ✅ 이 시스템
-- 중복 제거 + 이슈 클러스터링
-- 기사 비중 기반 중요도 분석
-- 언론사 관점까지 해석
-👉 **이슈 구조 분석 + 보도 맥락 해석 + 외부 교차 검증**까지 수행합니다.
-
----
-
-## 🚀 프로젝트 핵심 가치
+### 🚀 프로젝트 핵심 가치
 
 - 📊 **언론사 편집 의도를 데이터로 보존**
 - 🤖 **LLM 기반 맥락 분석 (단순 요약 X)**
@@ -70,6 +61,11 @@
   - 이슈 집중도 분석
   - 보도 맥락
   - 외부 정보 비교
+
+### 5. 자동화된 오케스트레이션 (GitHub Actions)
+- Daily Automation: GitHub Actions를 통해 매일 정해진 시각(KST 오전 9시)에 뉴스 수집 및 분석 파이프라인 자동 실행
+- 환경 격리: Secrets를 활용한 보안 데이터 관리 및 자동화된 빌드/배포 환경(Ubuntu Runner) 구축
+- 수동 실행 제어: workflow_dispatch 기능을 통한 필요시 즉각적인 파이프라인 재가동 지원
 
 ---
 
@@ -109,8 +105,6 @@ GPT 생성
 실제 출력 예시:
 🏆 서울신문 실시간 주요 이슈 분석: [카테고리]
 
----
-
 🏆 Top News
 1. ...
 2. ...
@@ -148,12 +142,12 @@ Tavily 기반 외부 검증
 
 ## 6. 폴더 구조
 
-seoul_news/
-├── backend/            # 분석 및 LLM 추론 로직, DB 저장 (main.py, analyzer.py, database.py)
-├── frontend/           # 실시간 시각화 대시보드 (app.py)
-├── worker/             # 뉴스 수집기 (orchestrator.py, collector.py)
-├── .devcontainer/      # 개발 환경 표준화 설정
-├── .github/workflows   # 자동화 구축 (매일 아침 9시에 최신화 및 보고)
+seoul_news/</br>
+├── backend/            # 분석 및 LLM 추론 로직, DB 저장 (main.py, analyzer.py, database.py)</br>
+├── frontend/           # 실시간 시각화 대시보드 (app.py)</br>
+├── worker/             # 뉴스 수집기 (orchestrator.py, collector.py)</br>
+├── .devcontainer/      # 개발 환경 표준화 설정</br>
+├── .github/workflows   # 자동화 구축 (매일 아침 9시에 최신화 및 보고)</br>
 └── README.md
 
 
@@ -161,12 +155,12 @@ seoul_news/
 
 ### 🎯 시연 (Demo)
 
-배포 링크 : https://seoulnews.streamlit.app/
+배포 링크 : https://seoulnews.streamlit.app/</br>
 
-실제 웹(Streamlit) 화면
+####실제 웹(Streamlit) 화면</br>
 <img width="1540" height="951" alt="Image" src="https://github.com/user-attachments/assets/22b5175a-c746-48a7-9445-8add5febf7a4" />
-
-실제 Slack 보고 화면
+</br>
+####실제 Slack 보고 화면</br>
 <img width="1401" height="1035" alt="Image" src="https://github.com/user-attachments/assets/6d08012e-861a-4df9-a26a-be80194b3b74" />
 
 
@@ -174,8 +168,8 @@ seoul_news/
 
 ### 🚀 확장성 (Scalability)
 
-☁️ AWS EC2 기반 배포 가능
-🐳 Docker 컨테이너화
-🔄 Airflow / GitHub Actions 기반 자동 수집 파이프라인
-📈 멀티 언론사 확장 가능 (조선/중앙 등)
-🧠 장기적으로 뉴스 트렌드 분석 및 예측 모델 확장 가능
+☁️ AWS EC2 기반 배포 가능</br>
+🐳 Docker 컨테이너화</br>
+🔄 Airflow / GitHub Actions 기반 자동 수집 파이프라인</br>
+📈 멀티 언론사 확장 가능 (조선/중앙 등)</br>
+🧠 장기적으로 뉴스 트렌드 분석 및 예측 모델 확장 가능</br>
