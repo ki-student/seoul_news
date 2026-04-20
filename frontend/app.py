@@ -72,6 +72,26 @@ if st.session_state.user_info is None:
                 st.error(f"로그인 중 오류 발생: {e}")
 
     with tab2:
+        st.subheader("새로운 사용자로 등록")
+        
+        # 슬랙 가이드 추가
+        with st.expander("💡 슬랙 웹훅(Webhook) URL 발급 방법 (처음이신 분 클릭!)"):
+            st.markdown("""
+            **1단계: 슬랙 앱(App) 생성**
+            - [Slack API 대시보드](https://api.slack.com/apps)에 접속합니다.
+            - **Create New App** -> **From scratch**를 선택합니다.
+            - 앱 이름(예: `SeoulNews`)을 입력하고 워크스페이스를 선택한 후 **Create App**을 누릅니다.
+
+            **2단계: Incoming Webhooks 활성화**
+            - 왼쪽 메뉴에서 **Incoming Webhooks**를 클릭합니다.
+            - Activate Incoming Webhooks 스위치를 **On**으로 바꿉니다.
+
+            **3단계: 웹훅 URL 발급 및 채널 지정**
+            - 하단의 **Add New Webhook to Workspace** 버튼을 클릭합니다.
+            - 리포트를 받을 **슬랙 채널**을 선택한 후 **Allow (허용)**를 누릅니다.
+            - 생성된 `https://hooks.slack.com/services/...` 주소를 아래 입력창에 붙여넣으세요!
+            """)
+
         new_name = st.text_input("성함", placeholder="ID로 사용됩니다")
         new_slack = st.text_input("슬랙 Webhook URL", placeholder="https://hooks.slack.com/services/...")
         new_interests = st.multiselect("관심 카테고리 설정", CATEGORY_OPTIONS)
