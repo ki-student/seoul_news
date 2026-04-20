@@ -141,8 +141,8 @@ def crawl_category_page(category_name, url):
 def crawl_policy():
     url = "https://go.seoul.co.kr/"
     res = requests.get(url, headers=headers)
-    # 인코딩 자동 감지 후 명시적 변환 (깨짐 방지)
-    res.encoding = res.apparent_encoding 
+    # go.seoul.co.kr는 CP949를 사용하므로 명시적으로 설정하여 깨짐 방지
+    res.encoding = 'cp949'
     soup = BeautifulSoup(res.text, "html.parser")
     articles = []
     # 정책 Top
@@ -150,7 +150,7 @@ def crawl_policy():
         a = item if item.name == 'a' else item.select_one('a')
         if a:
             title = get_safe_title(a)
-            if title and len(title) > 2: # ȸ 같은 짧은 깨짐 방어
+            if title and len(title) > 2:
                 articles.append({"title": title, "url": urljoin(url, a.get("href")), "source": "01_policy_top_best", "category": "정책.자치"})
     # 분야별 최신
     sector_names = ["정책.행정", "지방자치", "서울"]
@@ -281,12 +281,22 @@ def run_total_pipeline():
     for i, a in enumerate(final_list):
         try:
             res = requests.get(a["url"], headers=headers, timeout=10)
-            res.encoding = 'utf-8'
-            soup = BeautifulSoup(res.text, "html.parser")
+            
+            # [핵심 수정] 인코딩 깨짐을 방지하기 위해 UTF-8 ignore 방식으로 디코딩
+            html_text = res.content.decode('utf-8', errors='ignore')
+            soup = BeautifulSoup(html_text, "html.parser")
+            
+            # [추가] 정책.자치 기사인 경우 기사 페이지의 정확한 위치에서 제목 재추출
+            if a.get("category") == "정책.자치":
+                title_tag = soup.select_one("#container > div.content > div.atic_title > h3")
+                if title_tag:
+                    a["title"] = title_tag.get_text(strip=True)
+
             tag = soup.select_one("#articleContent .viewContent, .viewContent, #article_content, .articleBody")
             a["content"] = extract_text(tag)
             if i % 30 == 0: log(f"진행: {i}/{len(final_list)}")
-        except: a["content"] = ""
+        except Exception as e:
+            a["content"] = ""
         time.sleep(0.05)
 
     # 데이터 업로드 및 클러스터링
