@@ -140,7 +140,7 @@ Tavily 기반 외부 검증
 
 ---
 
-## 6. 폴더 구조
+### 📂 폴더 구조
 
 seoul_news/</br>
 ├── backend/            # 분석 및 LLM 추론 로직, DB 저장 (main.py, analyzer.py, database.py)</br>
@@ -157,10 +157,13 @@ seoul_news/</br>
 
 배포 링크 : https://seoulnews.streamlit.app/</br>
 
-####실제 웹(Streamlit) 화면</br>
+#### 실제 웹(Streamlit) 화면</br></br>
+
 <img width="1540" height="951" alt="Image" src="https://github.com/user-attachments/assets/22b5175a-c746-48a7-9445-8add5febf7a4" />
-</br>
-####실제 Slack 보고 화면</br>
+</br></br>
+
+#### 실제 Slack 보고 화면</br></br>
+
 <img width="1401" height="1035" alt="Image" src="https://github.com/user-attachments/assets/6d08012e-861a-4df9-a26a-be80194b3b74" />
 
 
