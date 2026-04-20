@@ -15,7 +15,8 @@
 | **Programming** | Python 3.10+, Gemini CLI, Cursor |
 | **Backend** | FastAPI (추론 로직 처리) |
 | **Database** | Qdrant (벡터 검색, 이슈 트래킹) |
-| **AI/LLM** | GPT-4o-mini, Tavily API (Fact-check & Context) |
+| **AI/LLM** | GPT-5.4-mini, Tavily API (Fact-check & Context) |
+| **Embedding** | text-embedding-3-small |
 | **Frontend** | Streamlit (실시간 분석 대시보드) |
 | **Pipeline** | GitHub Actions (주기적 배치 수집) |
 | **Deploy** | Streamlit Cloud |
@@ -79,7 +80,7 @@
 | 우선순위 | 소스 | 의미 |
 |----------|------|------|
 | 1 | `00_main_top` | 메인 핵심 |
-| 2 | `01_...` | 카테고리 핵심 |
+| 2 | `01_top_...` | 카테고리 핵심 |
 | 3 | `00_main_most` | 인기 기사 |
 | 4 | `00_main_today` | 일반 기사 |
 | 5 | `02_latest` | 최신 기사 |
@@ -88,9 +89,7 @@
 
 ### 🧠 Smart Merge 로직
 
-```text
 기존 데이터 존재 시:
-
 1. 기존 payload 유지
 2. collected_at 최신화
 3. latest_rank 업데이트
