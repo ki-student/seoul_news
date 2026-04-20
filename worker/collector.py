@@ -218,10 +218,10 @@ def process_and_upload(articles):
     for i, article in enumerate(articles):
         point_id = hashlib.md5(article["url"].encode()).hexdigest()
         
-        # 기존 데이터 조회
-        existing = qdrant_client.retrieve(collection_name=COLLECTION_NAME, ids=[point_id])
+        # 기존 데이터 조회 (벡터 포함)
+        existing = qdrant_client.retrieve(collection_name=COLLECTION_NAME, ids=[point_id], with_vectors=True)
         
-        if existing:
+        if existing and existing[0].vector:
             skipped_count += 1
             existing_point = existing[0]
             article_payload = existing_point.payload
@@ -230,14 +230,9 @@ def process_and_upload(articles):
                 "collected_at": current_time,
                 "latest_rank": article.get("rank", 0)
             })
-            # 벡터를 None으로 설정하면 기존 벡터가 유지됩니다.
-            points.append(models.PointStruct(
-                id=point_id, 
-                vector=None, 
-                payload=article_payload
-            ))
+            points.append(models.PointStruct(id=point_id, vector=existing_point.vector, payload=article_payload))
         else:
-            # 새로운 기사는 임베딩 필요
+            # 새로운 기사 혹은 벡터가 없는 기사는 임베딩 다시 수행
             embedding = get_embeddings([article["title"]])[0]
             article["collected_at"] = current_time
             article["latest_rank"] = article.get("rank", 0)
