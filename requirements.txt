@@ -1,6 +1,6 @@
+streamlit
 requests
 beautifulsoup4
-sentence-transformers
 scikit-learn
 qdrant-client
 python-dotenv
@@ -9,5 +9,3 @@ tavily-python
 fastapi
 uvicorn
 pydantic
-torch
-streamlit

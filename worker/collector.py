@@ -141,15 +141,18 @@ def crawl_category_page(category_name, url):
 def crawl_policy():
     url = "https://go.seoul.co.kr/"
     res = requests.get(url, headers=headers)
+    # 인코딩 자동 감지 후 명시적 변환 (깨짐 방지)
     res.encoding = res.apparent_encoding 
     soup = BeautifulSoup(res.text, "html.parser")
     articles = []
+    # 정책 Top
     for item in soup.select("#hitTab01 ol li, .bestview ul li a")[:10]:
         a = item if item.name == 'a' else item.select_one('a')
         if a:
             title = get_safe_title(a)
-            if title and len(title) > 2:
+            if title and len(title) > 2: # ȸ 같은 짧은 깨짐 방어
                 articles.append({"title": title, "url": urljoin(url, a.get("href")), "source": "01_policy_top_best", "category": "정책.자치"})
+    # 분야별 최신
     sector_names = ["정책.행정", "지방자치", "서울"]
     for i in range(3):
         for selector in [f"#main_news_{i} li a", f"#main_news2_{i} li a"]:
