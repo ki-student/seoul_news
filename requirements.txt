@@ -1,0 +1,13 @@
+requests
+beautifulsoup4
+sentence-transformers
+scikit-learn
+qdrant-client
+python-dotenv
+openai
+tavily-python
+fastapi
+uvicorn
+pydantic
+torch
+streamlit
