@@ -230,10 +230,10 @@ def process_and_upload(articles):
                 "collected_at": current_time,
                 "latest_rank": article.get("rank", 0)
             })
-            # 벡터가 None인 경우 빈 리스트 대신 기존 벡터 유지 혹은 안전값 설정
+            # 벡터를 None으로 설정하면 기존 벡터가 유지됩니다.
             points.append(models.PointStruct(
                 id=point_id, 
-                vector=existing_point.vector or [], 
+                vector=None, 
                 payload=article_payload
             ))
         else:
