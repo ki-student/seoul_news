@@ -1,5 +1,3 @@
-<img width="225" height="225" alt="image" src="https://github.com/user-attachments/assets/96b5ba86-c800-48e4-999f-3fea44af1cfa" /># 📰 Seoul News AI Analyzer
-
 ### 실시간 뉴스 수집 · 분석 · 책임 있는 AI 리포트 생성 시스템
 
 이 프로젝트는 서울신문 데이터를 기반으로  
