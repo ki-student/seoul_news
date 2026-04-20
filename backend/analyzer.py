@@ -70,11 +70,10 @@ class NewsAnalyzer:
                 must=[models.FieldCondition(key="category", match=models.MatchValue(value=category))]
             )
         else:
-            # '전체'일 경우 메인 섹션 데이터 위주로 필터링 (필요 시 수정)
+            # '전체'일 경우 메인 섹션 데이터 위주로 필터링
             filter_condition = models.Filter(
                 should=[
-                    models.FieldCondition(key="category", match=models.MatchValue(value="00_메인")),
-                    models.FieldCondition(key="source", match=models.MatchText(text="main"))
+                    models.FieldCondition(key="category", match=models.MatchValue(value="00_메인"))
                 ]
             )
 

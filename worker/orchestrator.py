@@ -19,13 +19,26 @@ def run_daily_orchestration():
     print("🚀 [1/4] 뉴스 데이터 수집 및 Qdrant 업데이트 시작...")
     run_total_pipeline()
 
-    print("\n🚀 [2/4] 분석 엔진 및 DB 연결 초기화...")
+    # 분석 엔진 및 DB 연결 초기화
     analyzer = NewsAnalyzer()
     qdrant_client = QdrantClient(
         url=os.getenv("QDRANT_ENDPOINT"),
-        api_key=os.getenv("QDRANT_API_KEY")
+        api_key=os.getenv("QDRANT_API_KEY"),
+        timeout=60
     )
     
+    # [추가] 유저 컬렉션이 없으면 자동 생성
+    try:
+        collections = qdrant_client.get_collections().collections
+        if not any(c.name == "user_profiles" for c in collections):
+            print("🚀 [3/4] 유저 프로필 컬렉션 생성 중...")
+            qdrant_client.create_collection(
+                collection_name="user_profiles",
+                vectors_config=models.VectorParams(size=128, distance=models.Distance.COSINE),
+            )
+    except Exception as e:
+        print(f"⚠️ 유저 컬렉션 초기화 중 에러: {e}")
+
     # Qdrant에서 모든 사용자 정보 가져오기
     print("🚀 [3/4] 사용자 목록 조회 중...")
     try:

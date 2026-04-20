@@ -2,10 +2,11 @@ import requests
 from bs4 import BeautifulSoup, NavigableString
 from urllib.parse import urljoin
 import time
+from datetime import datetime, timedelta
 import json
 import os
 import hashlib
-from sentence_transformers import SentenceTransformer
+from openai import OpenAI
 from sklearn.metrics.pairwise import cosine_similarity
 from qdrant_client import QdrantClient
 from qdrant_client.http import models
@@ -21,15 +22,30 @@ headers = {
 }
 BASE_URL = "https://www.seoul.co.kr/"
 
-log("NLP 모델 로딩 중...")
-model = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
+# OpenAI 클라이언트 초기화
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+EMBEDDING_MODEL = "text-embedding-3-small"
+VECTOR_SIZE = 1536
 
-# Qdrant 클라이언트 설정
+# Qdrant 클라이언트 설정 (timeout 추가)
 qdrant_client = QdrantClient(
     url=os.getenv("QDRANT_ENDPOINT"),
-    api_key=os.getenv("QDRANT_API_KEY")
+    api_key=os.getenv("QDRANT_API_KEY"),
+    timeout=60 
 )
 COLLECTION_NAME = "seoul_news"
+
+def get_embeddings(texts):
+    """OpenAI 모델을 사용하여 텍스트 임베딩 생성"""
+    try:
+        response = client.embeddings.create(
+            input=texts,
+            model=EMBEDDING_MODEL
+        )
+        return [data.embedding for data in response.data]
+    except Exception as e:
+        log(f"임베딩 생성 에러: {e}")
+        return None
 
 def init_qdrant_collection():
     """뉴스 컬렉션 초기화"""
@@ -37,10 +53,10 @@ def init_qdrant_collection():
         collections = qdrant_client.get_collections().collections
         exists = any(c.name == COLLECTION_NAME for c in collections)
         if not exists:
-            log(f"Qdrant 컬렉션 '{COLLECTION_NAME}' 생성 중...")
+            log(f"Qdrant 컬렉션 '{COLLECTION_NAME}' ({VECTOR_SIZE}차원) 생성 중...")
             qdrant_client.create_collection(
                 collection_name=COLLECTION_NAME,
-                vectors_config=models.VectorParams(size=384, distance=models.Distance.COSINE),
+                vectors_config=models.VectorParams(size=VECTOR_SIZE, distance=models.Distance.COSINE),
             )
     except Exception as e:
         log(f"Qdrant 초기화 에러: {e}")
@@ -160,33 +176,78 @@ def crawl_entertainment():
     return articles
 
 # =====================================================
-# 🔹 Qdrant 업로드 로직
+# 🔹 Qdrant 업로드 및 클라우드 정리 로직
 # =====================================================
 
-def upload_to_qdrant(articles):
-    log(f"Qdrant 업로드 시작 (총 {len(articles)}개)...")
+def cleanup_old_articles():
+    """24시간(1일) 이상 지난 기사 삭제"""
+    cutoff_time = int((datetime.now() - timedelta(days=1)).timestamp())
+    try:
+        log(f"오래된 기사 정리 중 (기준: 24시간 전)...")
+        qdrant_client.delete(
+            collection_name=COLLECTION_NAME,
+            points_selector=models.Filter(
+                must=[
+                    models.FieldCondition(
+                        key="collected_at",
+                        range=models.Range(lt=cutoff_time)
+                    )
+                ]
+            )
+        )
+    except Exception as e:
+        log(f"데이터 정리 중 에러: {e}")
+
+def process_and_upload(articles):
+    log(f"데이터 처리 및 Qdrant 업로드 시작 (총 {len(articles)}개)...")
     init_qdrant_collection()
     
+    current_time = int(time.time())
     titles = [a["title"] for a in articles]
-    embeddings = model.encode(titles)
+    embeddings = get_embeddings(titles)
     
+    if not embeddings:
+        log("❌ 임베딩 생성 실패. 업로드를 중단합니다.")
+        return None
+
+    # 1. Qdrant 업로드
     points = []
     for i, article in enumerate(articles):
-        # URL을 MD5 해시로 변환하여 ID로 사용 (문자열 ID 지원)
+        # 수집 시간 추가 (삭제용)
+        article["collected_at"] = current_time
+        
         point_id = hashlib.md5(article["url"].encode()).hexdigest()
         points.append(models.PointStruct(
             id=point_id,
-            vector=embeddings[i].tolist(),
+            vector=embeddings[i],
             payload=article
         ))
         
-        if len(points) >= 100:
+        # 타임아웃 방지를 위해 배치 크기를 50으로 줄임
+        if len(points) >= 50:
             qdrant_client.upsert(collection_name=COLLECTION_NAME, points=points)
             points = []
             
     if points:
         qdrant_client.upsert(collection_name=COLLECTION_NAME, points=points)
-    log("Qdrant 업로드 완료.")
+    
+    # 오래된 데이터 정리 실행
+    cleanup_old_articles()
+    log("✅ Qdrant 업로드 및 데이터 정리 완료.")
+
+    # 2. 클러스터링 (유사도 기반)
+    log("유사 기사 그룹화 중...")
+    clusters = []
+    for i in range(len(articles)):
+        added = False
+        for c in clusters:
+            sim = cosine_similarity([embeddings[i]], [embeddings[c[0]]])[0][0]
+            if sim > 0.8:
+                c.append(i)
+                added = True
+                break
+        if not added: clusters.append([i])
+    return clusters
 
 # =====================================================
 # 🔹 메인 실행 로직
@@ -225,28 +286,15 @@ def run_total_pipeline():
         except: a["content"] = ""
         time.sleep(0.05)
 
-    log("유사 기사 그룹화 중...")
-    titles = [a["title"] for a in final_list]
-    embeddings = model.encode(titles)
-    clusters = []
-    for i in range(len(final_list)):
-        added = False
-        for c in clusters:
-            sim = cosine_similarity([embeddings[i]], [embeddings[c[0]]])[0][0]
-            if sim > 0.8:
-                c.append(i)
-                added = True
-                break
-        if not added: clusters.append([i])
+    # 데이터 업로드 및 클러스터링
+    clusters = process_and_upload(final_list)
 
     # JSON 저장
-    output = {"timestamp": time.strftime("%Y-%m-%d %H:%M:%S"), "articles": final_list, "clusters": clusters}
+    output = {"timestamp": time.strftime("%Y-%m-%d %H:%M:%S"), "articles": final_list, "clusters": clusters or []}
     os.makedirs("worker", exist_ok=True)
     with open("worker/seoul_news.json", "w", encoding="utf-8") as f:
         json.dump(output, f, ensure_ascii=False, indent=2)
     
-    # Qdrant 업로드
-    upload_to_qdrant(final_list)
     log("작업 완료: 'seoul_news.json' 저장 및 Qdrant 업로드 완료.")
 
 if __name__ == "__main__":

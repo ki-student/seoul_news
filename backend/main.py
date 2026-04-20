@@ -1,5 +1,6 @@
 import os
 import requests
+import hashlib
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 import uvicorn
@@ -19,9 +20,17 @@ analyzer = NewsAnalyzer()
 # Qdrant 설정
 qdrant_client = QdrantClient(
     url=os.getenv("QDRANT_ENDPOINT"),
-    api_key=os.getenv("QDRANT_API_KEY")
+    api_key=os.getenv("QDRANT_API_KEY"),
+    timeout=60
 )
 USER_COLLECTION = "user_profiles"
+
+def get_user_id(username):
+    """
+    한글/영문 아이디를 Qdrant가 허용하는 32자리 고유 ID 형식으로 변환합니다.
+    (MD5 해시 사용)
+    """
+    return hashlib.md5(username.encode()).hexdigest()
 
 def init_user_db():
     """사용자 프로필 컬렉션 초기화"""
@@ -29,7 +38,6 @@ def init_user_db():
         collections = qdrant_client.get_collections().collections
         exists = any(c.name == USER_COLLECTION for c in collections)
         if not exists:
-            # 사용자 정보는 메타데이터(payload) 위주이므로 작은 벡터 하나를 생성합니다.
             qdrant_client.create_collection(
                 collection_name=USER_COLLECTION,
                 vectors_config=models.VectorParams(size=128, distance=models.Distance.COSINE),
@@ -55,11 +63,13 @@ class LoginRequest(BaseModel):
 def register_user(user: UserProfile):
     """회원가입 및 정보 수정 (Qdrant 저장)"""
     try:
+        # 아이디를 변환하여 사용
+        point_id = get_user_id(user.username)
         qdrant_client.upsert(
             collection_name=USER_COLLECTION,
             points=[
                 models.PointStruct(
-                    id=user.username, # 아이디를 고유 ID로 사용
+                    id=point_id, 
                     vector=[0.0] * 128, # 더미 벡터
                     payload={
                         "username": user.username,
@@ -69,23 +79,27 @@ def register_user(user: UserProfile):
                 )
             ]
         )
+        print(f"✅ 유저 {user.username} 저장 완료 (ID: {point_id})")
         return {"message": "success"}
     except Exception as e:
+        print(f"❌ 가입 에러: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/login")
 def login(req: LoginRequest):
     """로그인: Qdrant에서 유저 정보 검색"""
     try:
+        point_id = get_user_id(req.username)
         result = qdrant_client.retrieve(
             collection_name=USER_COLLECTION,
-            ids=[req.username]
+            ids=[point_id]
         )
         if result:
             user_data = result[0].payload
             return user_data
         raise HTTPException(status_code=404, detail="User not found")
     except Exception as e:
+        print(f"❌ 로그인 에러: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/analyze")
@@ -94,11 +108,12 @@ async def do_analysis(username: str, category: str):
     # 1. AI 분석 수행
     result = analyzer.analyze_category(category)
     
-    # 2. Qdrant에서 이 유저의 슬랙 웹훅 주소 가져오기
+    # 2. Qdrant에서 유저 정보 조회
     try:
+        point_id = get_user_id(username)
         user_res = qdrant_client.retrieve(
             collection_name=USER_COLLECTION,
-            ids=[username]
+            ids=[point_id]
         )
         if user_res:
             webhook_url = user_res[0].payload.get("slack_webhook")
