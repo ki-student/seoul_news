@@ -1,4 +1,4 @@
-# 📰 Seoul News AI Analyzer
+<img width="225" height="225" alt="image" src="https://github.com/user-attachments/assets/96b5ba86-c800-48e4-999f-3fea44af1cfa" /># 📰 Seoul News AI Analyzer
 
 ### 실시간 뉴스 수집 · 분석 · 책임 있는 AI 리포트 생성 시스템
 
@@ -171,6 +171,7 @@ seoul_news/</br>
 
 ### 🚀 확장성 (Scalability)
 
+🔐 로그인 보안 기능 강화</br>
 ☁️ AWS EC2 기반 배포 가능</br>
 🐳 Docker 컨테이너화</br>
 🔄 Airflow / GitHub Actions 기반 자동 수집 파이프라인</br>
