@@ -27,7 +27,7 @@ class NewsAnalyzer:
             "국제": "https://www.seoul.co.kr/news/newsList.php?section=international",
             "문화": "https://www.seoul.co.kr/news/newsList.php?section=life",
             "스포츠": "https://www.seoul.co.kr/newsList/sport/",
-            "연애": "https://en.seoul.co.kr/news/newsList.php?section=entertainment",
+            "연예": "https://en.seoul.co.kr/news/newsList.php?section=entertainment",
             "정책.자치": "https://go.seoul.co.kr/"
         }
 
