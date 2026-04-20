@@ -230,7 +230,12 @@ def process_and_upload(articles):
                 "collected_at": current_time,
                 "latest_rank": article.get("rank", 0)
             })
-            points.append(models.PointStruct(id=point_id, vector=existing_point.vector, payload=article_payload))
+            # 벡터가 None인 경우 빈 리스트 대신 기존 벡터 유지 혹은 안전값 설정
+            points.append(models.PointStruct(
+                id=point_id, 
+                vector=existing_point.vector or [], 
+                payload=article_payload
+            ))
         else:
             # 새로운 기사는 임베딩 필요
             embedding = get_embeddings([article["title"]])[0]
