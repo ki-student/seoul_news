@@ -171,6 +171,8 @@ seoul_news/</br>
 
 배포 링크 : https://seoulnews.streamlit.app/</br>
 
+<img width="322" height="320" alt="Image" src="https://github.com/user-attachments/assets/c2a8224d-0604-4acd-a2df-f0bf71677752" />
+
 #### 실제 웹(Streamlit) 화면</br></br>
 
 <img width="1540" height="951" alt="Image" src="https://github.com/user-attachments/assets/22b5175a-c746-48a7-9445-8add5febf7a4" />
