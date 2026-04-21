@@ -61,7 +61,7 @@
   - 외부 정보 비교
 
 ### 5. 자동화된 오케스트레이션 (GitHub Actions)
-- Daily Automation: GitHub Actions를 통해 매일 정해진 시각에 뉴스 수집 및 분석 파이프라인 자동 실행
+- Daily Automation: GitHub Actions를 통해 정해진 주기에 맞춰 뉴스 수집 및 분석 파이프라인 자동 실행
 - 환경 격리: Secrets를 활용한 보안 데이터 관리 및 자동화된 빌드/배포 환경(Ubuntu Runner) 구축
 - 수동 실행 제어: workflow_dispatch 기능을 통한 필요시 즉각적인 파이프라인 재가동 지원
 
