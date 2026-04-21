@@ -146,7 +146,7 @@ seoul_news/</br>
 ├── worker/             # 뉴스 수집기 (orchestrator.py, collector.py)</br>
 ├── .devcontainer/      # 개발 환경 표준화 설정</br>
 ├── .github/workflows   # 자동화 구축 (매일 아침 9시에 최신화 및 보고)</br>
-├── requirements.txt
+├── requirements.txt</br>
 └── README.md
 
 
