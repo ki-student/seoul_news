@@ -5,7 +5,7 @@ on:
     # 한국 시간(KST) 매일 오전 9시 (UTC 00:00)
     # - cron: '0 0 * * *'
     - cron: '*/5 * * * *'
-  workflow_dispatch: # 수동 실행 버튼 추가
+  workflow_dispatch:
 
 jobs:
   build:
